@@ -1,26 +1,27 @@
 package com.socks.api.utils;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import com.github.javafaker.Faker;
 
 public class RandomUtils {
 
+    private static Faker faker = new Faker();
+
+
     public static String generateUserName(){
-        return "UserName_" + RandomStringUtils.randomAlphanumeric(6);
+        return faker.name().nameWithMiddle();
     }
 
     public static String generateUserFirstName(){
-        return "FirstName_" + RandomStringUtils.randomAlphanumeric(6);
+        return faker.name().firstName();
     }
 
     public static String generateUserLastName(){
-        return "LastName_" + RandomStringUtils.randomAlphanumeric(6);
+        return faker.name().lastName();
     }
 
-    public static String generateUserEmail(){
-        return RandomStringUtils.randomAlphanumeric(6) + "@mail.com";
-    }
+    public static String generateUserEmail(){ return faker.internet().emailAddress(); }
 
     public static String generateUserPassword(){
-        return RandomStringUtils.randomAlphanumeric(6);
+        return faker.internet().password();
     }
 }

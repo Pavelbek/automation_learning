@@ -1,19 +1,21 @@
 package com.socks.api.services;
 
+import com.socks.api.assertions.AssertableResponse;
 import com.socks.api.models.User;
-import io.restassured.response.Response;
+import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UserApiService extends BaseApiService{
 
-    public Response registerUser(User user){
+    @Step
+    public AssertableResponse registerUser(User user){
         log.info("register user {}", user);
-        return executePost("register", user);
+        return new AssertableResponse(executePost("register", user));
     }
 
-    public Response login(String userName, String password){
+    public AssertableResponse login(String userName, String password){
         log.info("log in with credentials user name: {} and password {}", userName, password);
-        return executeGet("login", userName, password);
+        return new AssertableResponse(executeGet("login", userName, password));
     }
 }

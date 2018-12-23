@@ -1,6 +1,7 @@
 package com.socks.api.services;
 
 import com.socks.api.utils.ApiPropertiesReader;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
@@ -18,7 +19,7 @@ public class BaseApiService {
     public RequestSpecification setUp(){
         return RestAssured.given()
                 .contentType(ContentType.JSON)
-                .filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+                .filters(new RequestLoggingFilter(), new ResponseLoggingFilter(), new AllureRestAssured());
     }
 
     protected Response executeGet(String path, String userName, String password){

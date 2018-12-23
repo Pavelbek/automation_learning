@@ -1,12 +1,15 @@
 package com.socks.tests.brutal;
 
+import com.socks.api.assertions.AssertableResponse;
+import com.socks.api.enums.StatusCode;
 import com.socks.api.models.RegisterUserResponse;
 import com.socks.api.models.User;
 import com.socks.api.services.UserApiService;
 import com.socks.api.utils.ModelsGererator;
-import io.restassured.response.Response;
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.Test;
 
+import static com.socks.api.conditions.Conditions.statusCode;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -23,10 +26,11 @@ public class UserManagerTests {
 
         User user = ModelsGererator.getUserModel();
 
-        Response response = userApiService.registerUser(user);
-        RegisterUserResponse registerUserResponse = response.getBody().as(RegisterUserResponse.class);
+        AssertableResponse assertableResponse = userApiService.registerUser(user);
 
-        assertThat("Id should be not empty, but was.", registerUserResponse.getId().isEmpty(), equalTo(false));
+        assertableResponse.shouldHave(statusCode(StatusCode.OK));
+
+        assertRegisteredUserIdIsNotEmpty(assertableResponse);
     }
 
     @Test
@@ -35,9 +39,9 @@ public class UserManagerTests {
         User user = ModelsGererator.getUserModel();
         user.setEmail("");
 
-        Response response = userApiService.registerUser(user);
+        AssertableResponse response = userApiService.registerUser(user);
 
-        assertThat("Actual status code is: " + response.getStatusCode() + ", but expected is: 400", response.getStatusCode(), equalTo(400));
+        response.shouldHave(statusCode(StatusCode.BAD_REQUEST));
     }
 
     @Test
@@ -46,9 +50,9 @@ public class UserManagerTests {
         User user = ModelsGererator.getUserModel();
         user.setPassword("");
 
-        Response response = userApiService.registerUser(user);
+        AssertableResponse response = userApiService.registerUser(user);
 
-        assertThat("Actual status code is: " + response.getStatusCode() + ", but expected is: 400", response.getStatusCode(), equalTo(400));
+        response.shouldHave(statusCode(StatusCode.BAD_REQUEST));
     }
 
     @Test
@@ -56,13 +60,11 @@ public class UserManagerTests {
 
         User user = ModelsGererator.getUserModel();
 
-        Response response = userApiService.registerUser(user);
+        userApiService.registerUser(user);
 
-        assertThat("Actual status code is: " + response.getStatusCode() + ", but expected is: 200", response.getStatusCode(), equalTo(200));
+        AssertableResponse loginResponse = userApiService.login(user.getUsername(), user.getPassword());
 
-        Response loginResponse = userApiService.login(user.getUsername(), user.getPassword());
-
-        assertThat("Actual status code is: " + loginResponse.getStatusCode() + ", but expected is: 200", loginResponse.getStatusCode(), equalTo(200));
+        loginResponse.shouldHave(statusCode(StatusCode.OK));
     }
 
     @Test
@@ -70,14 +72,11 @@ public class UserManagerTests {
 
         User user = ModelsGererator.getUserModel();
 
-        Response response = userApiService.registerUser(user);
+        userApiService.registerUser(user);
 
-        assertThat("Actual status code is: " + response.getStatusCode() + ", but expected is: 200", response.getStatusCode(), equalTo(200));
+        AssertableResponse loginResponse = userApiService.login(user.getUsername(), "");
 
-        Response loginResponse = userApiService.login(user.getUsername(), "");
-
-        assertThat("Actual status code is: " + loginResponse.getStatusCode() + ", but expected is: 401", loginResponse.getStatusCode(), equalTo(401));
-
+        loginResponse.shouldHave(statusCode(StatusCode.UNAUTHORIZED));
     }
 
     @Test
@@ -85,13 +84,16 @@ public class UserManagerTests {
 
         User user = ModelsGererator.getUserModel();
 
-        Response response = userApiService.registerUser(user);
+        userApiService.registerUser(user);
 
-        assertThat("Actual status code is: " + response.getStatusCode() + ", but expected is: 200", response.getStatusCode(), equalTo(200));
+        AssertableResponse loginResponse = userApiService.login("", user.getPassword());
 
-        Response loginResponse = userApiService.login("", user.getPassword());
+        loginResponse.shouldHave(statusCode(StatusCode.UNAUTHORIZED));
+    }
 
-        assertThat("Actual status code is: " + loginResponse.getStatusCode() + ", but expected is: 401", loginResponse.getStatusCode(), equalTo(401));
-
+    @Step("Checking that id in registered user response is not empty")
+    private void assertRegisteredUserIdIsNotEmpty(AssertableResponse response){
+        RegisterUserResponse registerUserResponse = response.getBody(RegisterUserResponse.class);
+        assertThat("Id should be not empty, but was.", registerUserResponse.getId().isEmpty(), equalTo(false));
     }
 }
